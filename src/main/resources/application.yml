@@ -9,3 +9,8 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+
+auth:
+  jwt:
+    issuer: auth-service
+    access-token-ttl: 15m

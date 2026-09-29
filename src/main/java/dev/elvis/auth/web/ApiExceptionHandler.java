@@ -1,5 +1,6 @@
 package dev.elvis.auth.web;
 
+import dev.elvis.auth.auth.InvalidCredentialsException;
 import dev.elvis.auth.user.EmailAlreadyRegisteredException;
 import dev.elvis.auth.user.WeakPasswordException;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problem.setTitle("Weak password");
         problem.setProperty("violations", ex.violations());
+        return problem;
+    }
+
+    @ExceptionHandler
+    ProblemDetail handle(InvalidCredentialsException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Invalid credentials");
         return problem;
     }
 }
