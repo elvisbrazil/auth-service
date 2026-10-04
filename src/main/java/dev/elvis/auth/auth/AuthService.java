@@ -55,6 +55,10 @@ public class AuthService {
         return tokensFor(rotation.user(), rotation.next());
     }
 
+    public void logout(String refreshToken) {
+        refreshTokens.revoke(refreshToken);
+    }
+
     private TokenResponse tokensFor(User user, IssuedRefreshToken refreshToken) {
         var accessToken = accessTokens.issue(user);
         var expiresIn = Duration.between(clock.instant(), accessToken.expiresAt()).toSeconds();

@@ -3,11 +3,15 @@ package dev.elvis.auth.token;
 import dev.elvis.auth.user.User;
 import java.time.Clock;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RefreshTokenService {
+
+    private static final Logger log = LoggerFactory.getLogger(RefreshTokenService.class);
 
     private final RefreshTokenRepository tokens;
     private final RefreshTokenProperties properties;
@@ -29,12 +33,23 @@ public class RefreshTokenService {
         var now = clock.instant();
         var current = tokens.findByTokenHash(TokenHashing.sha256(rawToken))
                 .orElseThrow(InvalidRefreshTokenException::new);
-        if (current.isUsed() || current.isRevoked() || current.isExpiredAt(now)) {
+        if (current.isUsed() || current.isRevoked()) {
+            log.warn("Refresh token reuse detected, revoking family {}", current.getFamilyId());
+            tokens.revokeFamily(current.getFamilyId(), now);
+            throw new InvalidRefreshTokenException();
+        }
+        if (current.isExpiredAt(now)) {
             throw new InvalidRefreshTokenException();
         }
         current.markUsed(now);
         var next = issue(current.getUser(), current.getFamilyId());
         return new RefreshRotation(current.getUser(), next);
+    }
+
+    @Transactional
+    public void revoke(String rawToken) {
+        tokens.findByTokenHash(TokenHashing.sha256(rawToken))
+                .ifPresent(token -> tokens.revokeFamily(token.getFamilyId(), clock.instant()));
     }
 
     private IssuedRefreshToken issue(User user, UUID familyId) {
