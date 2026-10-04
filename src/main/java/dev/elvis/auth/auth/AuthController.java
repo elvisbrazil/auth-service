@@ -32,4 +32,9 @@ public class AuthController {
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request.email(), request.password());
     }
+
+    @PostMapping("/refresh")
+    public TokenResponse refresh(@Valid @RequestBody RefreshRequest request) {
+        return authService.refresh(request.refreshToken());
+    }
 }

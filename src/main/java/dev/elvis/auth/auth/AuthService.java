@@ -1,6 +1,8 @@
 package dev.elvis.auth.auth;
 
 import dev.elvis.auth.token.AccessTokenService;
+import dev.elvis.auth.token.IssuedRefreshToken;
+import dev.elvis.auth.token.RefreshTokenService;
 import dev.elvis.auth.user.User;
 import dev.elvis.auth.user.UserRepository;
 import java.time.Clock;
@@ -15,19 +17,25 @@ public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder passwordEncoder;
     private final AccessTokenService accessTokens;
+    private final RefreshTokenService refreshTokens;
     private final Clock clock;
     private final String dummyHash;
 
     public AuthService(
-            UserRepository users, PasswordEncoder passwordEncoder, AccessTokenService accessTokens, Clock clock) {
+            UserRepository users,
+            PasswordEncoder passwordEncoder,
+            AccessTokenService accessTokens,
+            RefreshTokenService refreshTokens,
+            Clock clock) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.accessTokens = accessTokens;
+        this.refreshTokens = refreshTokens;
         this.clock = clock;
         this.dummyHash = passwordEncoder.encode("not-a-real-password-1");
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse login(String email, String password) {
         var user = users.findByEmail(email).orElse(null);
         if (user == null) {
@@ -38,12 +46,18 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
-        return tokensFor(user);
+        return tokensFor(user, refreshTokens.issue(user));
     }
 
-    private TokenResponse tokensFor(User user) {
+    @Transactional
+    public TokenResponse refresh(String refreshToken) {
+        var rotation = refreshTokens.rotate(refreshToken);
+        return tokensFor(rotation.user(), rotation.next());
+    }
+
+    private TokenResponse tokensFor(User user, IssuedRefreshToken refreshToken) {
         var accessToken = accessTokens.issue(user);
         var expiresIn = Duration.between(clock.instant(), accessToken.expiresAt()).toSeconds();
-        return new TokenResponse(accessToken.value(), "Bearer", expiresIn);
+        return new TokenResponse(accessToken.value(), "Bearer", expiresIn, refreshToken.value());
     }
 }

@@ -1,6 +1,7 @@
 package dev.elvis.auth.web;
 
 import dev.elvis.auth.auth.InvalidCredentialsException;
+import dev.elvis.auth.token.InvalidRefreshTokenException;
 import dev.elvis.auth.user.EmailAlreadyRegisteredException;
 import dev.elvis.auth.user.WeakPasswordException;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail handle(InvalidCredentialsException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
         problem.setTitle("Invalid credentials");
+        return problem;
+    }
+
+    @ExceptionHandler
+    ProblemDetail handle(InvalidRefreshTokenException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problem.setTitle("Invalid refresh token");
         return problem;
     }
 }
