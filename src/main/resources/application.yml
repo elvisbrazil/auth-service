@@ -16,3 +16,6 @@ auth:
     access-token-ttl: 15m
   refresh-token:
     ttl: 14d
+  login-throttle:
+    max-failures: 5
+    lock-duration: 15m

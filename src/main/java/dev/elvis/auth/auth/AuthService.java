@@ -18,6 +18,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccessTokenService accessTokens;
     private final RefreshTokenService refreshTokens;
+    private final LoginThrottle throttle;
     private final Clock clock;
     private final String dummyHash;
 
@@ -26,26 +27,32 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             AccessTokenService accessTokens,
             RefreshTokenService refreshTokens,
+            LoginThrottle throttle,
             Clock clock) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.accessTokens = accessTokens;
         this.refreshTokens = refreshTokens;
+        this.throttle = throttle;
         this.clock = clock;
         this.dummyHash = passwordEncoder.encode("not-a-real-password-1");
     }
 
     @Transactional
     public TokenResponse login(String email, String password) {
+        throttle.checkAllowed(email);
         var user = users.findByEmail(email).orElse(null);
         if (user == null) {
             // burn the same bcrypt time so unknown emails can't be told apart by latency
             passwordEncoder.matches(password, dummyHash);
+            throttle.recordFailure(email);
             throw new InvalidCredentialsException();
         }
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throttle.recordFailure(email);
             throw new InvalidCredentialsException();
         }
+        throttle.recordSuccess(email);
         return tokensFor(user, refreshTokens.issue(user));
     }
 
