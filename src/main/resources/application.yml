@@ -19,3 +19,6 @@ auth:
   login-throttle:
     max-failures: 5
     lock-duration: 15m
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}
