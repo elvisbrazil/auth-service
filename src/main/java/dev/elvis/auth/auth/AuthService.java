@@ -56,7 +56,6 @@ public class AuthService {
         return tokensFor(user, refreshTokens.issue(user));
     }
 
-    @Transactional
     public TokenResponse refresh(String refreshToken) {
         var rotation = refreshTokens.rotate(refreshToken);
         return tokensFor(rotation.user(), rotation.next());

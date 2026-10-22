@@ -28,7 +28,7 @@ public class RefreshTokenService {
         return issue(user, UUID.randomUUID());
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public RefreshRotation rotate(String rawToken) {
         var now = clock.instant();
         var current = tokens.findByTokenHash(TokenHashing.sha256(rawToken))
