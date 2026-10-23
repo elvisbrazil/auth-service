@@ -40,6 +40,7 @@ class AccessTokenServiceTest {
         assertThat(jwt.getClaimAsString("role")).isEqualTo("ADMIN");
         assertThat(jwt.getExpiresAt()).isEqualTo(now.plus(Duration.ofMinutes(15)));
         assertThat(token.expiresAt()).isEqualTo(jwt.getExpiresAt());
+        assertThat(token.expiresInSeconds()).isEqualTo(900);
     }
 
     @Test
