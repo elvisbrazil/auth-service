@@ -5,8 +5,6 @@ import dev.elvis.auth.token.IssuedRefreshToken;
 import dev.elvis.auth.token.RefreshTokenService;
 import dev.elvis.auth.user.User;
 import dev.elvis.auth.user.UserRepository;
-import java.time.Clock;
-import java.time.Duration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,6 @@ public class AuthService {
     private final AccessTokenService accessTokens;
     private final RefreshTokenService refreshTokens;
     private final LoginThrottle throttle;
-    private final Clock clock;
     private final String dummyHash;
 
     public AuthService(
@@ -27,14 +24,12 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             AccessTokenService accessTokens,
             RefreshTokenService refreshTokens,
-            LoginThrottle throttle,
-            Clock clock) {
+            LoginThrottle throttle) {
         this.users = users;
         this.passwordEncoder = passwordEncoder;
         this.accessTokens = accessTokens;
         this.refreshTokens = refreshTokens;
         this.throttle = throttle;
-        this.clock = clock;
         this.dummyHash = passwordEncoder.encode("not-a-real-password-1");
     }
 
@@ -67,7 +62,7 @@ public class AuthService {
 
     private TokenResponse tokensFor(User user, IssuedRefreshToken refreshToken) {
         var accessToken = accessTokens.issue(user);
-        var expiresIn = Duration.between(clock.instant(), accessToken.expiresAt()).toSeconds();
-        return new TokenResponse(accessToken.value(), "Bearer", expiresIn, refreshToken.value());
+        return new TokenResponse(
+                accessToken.value(), "Bearer", accessToken.expiresInSeconds(), refreshToken.value());
     }
 }
