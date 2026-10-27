@@ -96,7 +96,8 @@ class AccessTokenServiceTest {
     }
 
     private static ByteArrayResource pem(String type, byte[] der) {
-        var body = Base64.getMimeEncoder(64, "\n".getBytes(StandardCharsets.US_ASCII)).encodeToString(der);
+        var body = Base64.getMimeEncoder(64, "\n".getBytes(StandardCharsets.US_ASCII))
+                .encodeToString(der);
         var pem = "-----BEGIN " + type + "-----\n" + body + "\n-----END " + type + "-----\n";
         return new ByteArrayResource(pem.getBytes(StandardCharsets.US_ASCII));
     }

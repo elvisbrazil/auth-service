@@ -1,9 +1,9 @@
 package dev.elvis.auth.token;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.JOSEException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -35,7 +35,10 @@ class JwtKeyConfig {
         if (properties.hasKeyPair()) {
             var publicKey = read(properties.publicKey(), RsaKeyConverters.x509()::convert);
             var privateKey = read(properties.privateKey(), RsaKeyConverters.pkcs8()::convert);
-            return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(keyId(publicKey)).build();
+            return new RSAKey.Builder(publicKey)
+                    .privateKey(privateKey)
+                    .keyID(keyId(publicKey))
+                    .build();
         }
         log.warn("No JWT key pair configured, generating an ephemeral one. Tokens will not survive a restart.");
         return generate();
@@ -48,7 +51,8 @@ class JwtKeyConfig {
 
     @Bean
     JwtDecoder jwtDecoder(RSAKey signingKey, JwtProperties properties) throws JOSEException {
-        var decoder = NimbusJwtDecoder.withPublicKey(signingKey.toRSAPublicKey()).build();
+        var decoder =
+                NimbusJwtDecoder.withPublicKey(signingKey.toRSAPublicKey()).build();
         decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(properties.issuer()));
         return decoder;
     }

@@ -32,7 +32,12 @@ class ProblemDetailSecurityHandler implements AuthenticationEntryPoint, AccessDe
             HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
         bearerEntryPoint.commence(request, response, authException);
-        write(request, response, HttpStatus.UNAUTHORIZED, "Authentication required", "A valid access token is required");
+        write(
+                request,
+                response,
+                HttpStatus.UNAUTHORIZED,
+                "Authentication required",
+                "A valid access token is required");
     }
 
     @Override

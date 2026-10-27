@@ -72,7 +72,8 @@ class RefreshTokenServiceTest {
         var rotation = service.rotate(first.value());
 
         var old = tokens.findByTokenHash(TokenHashing.sha256(first.value())).orElseThrow();
-        var next = tokens.findByTokenHash(TokenHashing.sha256(rotation.next().value())).orElseThrow();
+        var next = tokens.findByTokenHash(TokenHashing.sha256(rotation.next().value()))
+                .orElseThrow();
         assertThat(rotation.user().getId()).isEqualTo(user.getId());
         assertThat(rotation.next().value()).isNotEqualTo(first.value());
         assertThat(old.getUsedAt()).isNotNull();

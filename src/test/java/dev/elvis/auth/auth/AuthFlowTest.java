@@ -64,7 +64,8 @@ class AuthFlowTest {
 
         mvc.perform(post("/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body(Map.of("refreshToken", refreshed.get("refreshToken").asText()))))
+                        .content(body(Map.of(
+                                "refreshToken", refreshed.get("refreshToken").asText()))))
                 .andExpect(status().isNoContent());
 
         refresh(refreshed.get("refreshToken").asText()).andExpect(status().isUnauthorized());

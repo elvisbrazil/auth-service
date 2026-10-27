@@ -62,7 +62,6 @@ public class AuthService {
 
     private TokenResponse tokensFor(User user, IssuedRefreshToken refreshToken) {
         var accessToken = accessTokens.issue(user);
-        return new TokenResponse(
-                accessToken.value(), "Bearer", accessToken.expiresInSeconds(), refreshToken.value());
+        return new TokenResponse(accessToken.value(), "Bearer", accessToken.expiresInSeconds(), refreshToken.value());
     }
 }

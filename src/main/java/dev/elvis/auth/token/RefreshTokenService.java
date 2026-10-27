@@ -31,8 +31,8 @@ public class RefreshTokenService {
     @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public RefreshRotation rotate(String rawToken) {
         var now = clock.instant();
-        var current = tokens.findByTokenHash(TokenHashing.sha256(rawToken))
-                .orElseThrow(InvalidRefreshTokenException::new);
+        var current =
+                tokens.findByTokenHash(TokenHashing.sha256(rawToken)).orElseThrow(InvalidRefreshTokenException::new);
         if (current.isUsed() || current.isRevoked()) {
             log.warn("Refresh token reuse detected, revoking family {}", current.getFamilyId());
             tokens.revokeFamily(current.getFamilyId(), now);
