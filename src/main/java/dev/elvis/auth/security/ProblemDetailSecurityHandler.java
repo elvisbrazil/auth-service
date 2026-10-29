@@ -32,12 +32,7 @@ class ProblemDetailSecurityHandler implements AuthenticationEntryPoint, AccessDe
             HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException {
         bearerEntryPoint.commence(request, response, authException);
-        write(
-                request,
-                response,
-                HttpStatus.UNAUTHORIZED,
-                "Authentication required",
-                "A valid access token is required");
+        write(request, response, problem(HttpStatus.UNAUTHORIZED, "Unauthorized", "A valid access token is required"));
     }
 
     @Override
@@ -45,17 +40,20 @@ class ProblemDetailSecurityHandler implements AuthenticationEntryPoint, AccessDe
             HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException {
         bearerAccessDenied.handle(request, response, accessDeniedException);
-        write(request, response, HttpStatus.FORBIDDEN, "Forbidden", "You are not allowed to access this resource");
+        write(request, response, problem(HttpStatus.FORBIDDEN, "Forbidden", "Not allowed to access this resource"));
     }
 
-    private void write(
-            HttpServletRequest request, HttpServletResponse response, HttpStatus status, String title, String detail)
+    private void write(HttpServletRequest request, HttpServletResponse response, ProblemDetail problem)
             throws IOException {
-        var problem = ProblemDetail.forStatusAndDetail(status, detail);
-        problem.setTitle(title);
         problem.setInstance(URI.create(request.getRequestURI()));
-        response.setStatus(status.value());
+        response.setStatus(problem.getStatus());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         objectMapper.writeValue(response.getOutputStream(), problem);
+    }
+
+    private static ProblemDetail problem(HttpStatus status, String title, String detail) {
+        var problem = ProblemDetail.forStatusAndDetail(status, detail);
+        problem.setTitle(title);
+        return problem;
     }
 }
