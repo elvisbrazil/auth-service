@@ -106,6 +106,13 @@ class AuthFlowTest {
     }
 
     @Test
+    void loginIgnoresEmailCaseAndSurroundingSpaces() throws Exception {
+        register("Case@Example.com", PASSWORD).andExpect(status().isCreated());
+
+        attemptLogin(" CASE@example.COM ", PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
     void unknownEmailLooksLikeWrongPassword() throws Exception {
         attemptLogin("nobody@example.com", PASSWORD)
                 .andExpect(status().isUnauthorized())
@@ -173,7 +180,7 @@ class AuthFlowTest {
             attemptLogin("locked@example.com", "incorrect-horse-42").andExpect(status().isUnauthorized());
         }
 
-        attemptLogin("locked@example.com", PASSWORD)
+        attemptLogin("LOCKED@example.com", PASSWORD)
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().exists(HttpHeaders.RETRY_AFTER))
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));

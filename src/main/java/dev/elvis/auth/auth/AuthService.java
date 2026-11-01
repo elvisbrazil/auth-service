@@ -5,6 +5,7 @@ import dev.elvis.auth.token.IssuedRefreshToken;
 import dev.elvis.auth.token.RefreshTokenService;
 import dev.elvis.auth.user.User;
 import dev.elvis.auth.user.UserRepository;
+import dev.elvis.auth.user.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,8 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse login(String email, String password) {
+    public TokenResponse login(String rawEmail, String password) {
+        var email = UserService.normalize(rawEmail);
         throttle.checkAllowed(email);
         var user = users.findByEmail(email).orElse(null);
         if (user == null) {
