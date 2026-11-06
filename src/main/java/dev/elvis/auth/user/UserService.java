@@ -1,6 +1,7 @@
 package dev.elvis.auth.user;
 
 import java.time.Clock;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,8 @@ public class UserService {
         if (users.existsByEmail(normalizedEmail)) {
             throw new EmailAlreadyRegisteredException(normalizedEmail);
         }
-        var user = new User(normalizedEmail, passwordEncoder.encode(password), role, clock.instant());
+        var createdAt = clock.instant().truncatedTo(ChronoUnit.MICROS);
+        var user = new User(normalizedEmail, passwordEncoder.encode(password), role, createdAt);
         return users.save(user);
     }
 
