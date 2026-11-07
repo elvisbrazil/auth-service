@@ -35,6 +35,29 @@ Set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` to create an admin ac
 
 Errors are returned as `application/problem+json`.
 
+```sh
+curl -s localhost:8080/auth/register -H 'Content-Type: application/json' \
+  -d '{"email":"ana@example.com","password":"correct-horse-42"}'
+
+curl -s localhost:8080/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"ana@example.com","password":"correct-horse-42"}'
+# {"accessToken":"eyJ...","tokenType":"Bearer","expiresIn":900,"refreshToken":"GWTq..."}
+
+curl -s localhost:8080/me -H "Authorization: Bearer $ACCESS_TOKEN"
+
+curl -s localhost:8080/auth/refresh -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}"
+
+curl -s -i localhost:8080/auth/logout -H 'Content-Type: application/json' \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}"
+```
+
+Reusing a refresh token that was already rotated:
+
+```json
+{"type":"about:blank","title":"Invalid refresh token","status":401,"detail":"Refresh token is invalid or expired","instance":"/auth/refresh"}
+```
+
 ## Design notes
 
 - Access tokens are JWTs signed with RS256 through Spring Security's `JwtEncoder`/`JwtDecoder` (Nimbus). They carry the user id as `sub` and the role, and live for 15 minutes.
